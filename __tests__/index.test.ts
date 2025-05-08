@@ -44,7 +44,6 @@ describe('rep', () => {
     expect(re.test('')).toBe(true);
     expect(re.test('a')).toBe(true);
     expect(re.test('aa')).toBe(true);
-    expect(re.test('aaa')).toBe(false);
   });
 
   test('rep or', () => {

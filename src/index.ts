@@ -16,8 +16,45 @@ class State {
     return this.transitionMap.get(symbol) ?? [];
   }
 
-  test(input: string): boolean {
-    return input.length > 0;
+  test(input: string, visited = new Set()): boolean {
+    if (visited.has(this)) {
+      return false;
+    }
+
+    visited.add(this);
+
+    if (input.length === 0) {
+      if (this.accepting) {
+        return true;
+      }
+
+      for (const nextState of this.getTransitionsForSymbol(EPSILON)) {
+        if (nextState.test('', visited)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    const symbol = input[0];
+    const rest = input.slice(1);
+
+    const symbolTransitions = this.getTransitionsForSymbol(symbol);
+
+    for (const nextState of symbolTransitions) {
+      if (nextState.test(rest)) {
+        return true;
+      }
+    }
+
+    for (const nextState of this.getTransitionsForSymbol(EPSILON)) {
+      if (nextState.test(input, visited)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 }
 
@@ -80,8 +117,8 @@ export function orPair(first: NFA, second: NFA): NFA {
   inState.addTransitionForSymbol(EPSILON, first.inState);
   inState.addTransitionForSymbol(EPSILON, second.inState);
 
-  first.outState.addTransitionForSymbol(EPSILON, inState);
-  second.outState.addTransitionForSymbol(EPSILON, inState);
+  first.outState.addTransitionForSymbol(EPSILON, outState);
+  second.outState.addTransitionForSymbol(EPSILON, outState);
 
   return new NFA(inState, outState);
 }
@@ -91,18 +128,6 @@ export function or(first: NFA, ...rest: NFA[]): NFA {
 }
 
 export function rep(fragment: NFA): NFA {
-  // const inState = new State({ accepting: false });
-  // const outState = new State({ accepting: true });
-
-  // fragment.outState.accepting = false;
-
-  // inState.addTransitionForSymbol(EPSILON, fragment.inState);
-  // inState.addTransitionForSymbol(EPSILON, outState);
-
-  // fragment.outState.addTransitionForSymbol(EPSILON, outState);
-  // outState.addTransitionForSymbol(EPSILON, fragment.inState);
-
-  // return new NFA(inState, outState);
   fragment.inState.addTransitionForSymbol(EPSILON, fragment.outState);
   fragment.outState.addTransitionForSymbol(EPSILON, fragment.inState);
 
